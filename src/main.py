@@ -75,11 +75,52 @@ def load_delitos_df(file_path: str, skiprows: int = 5, skipfooter: int = 7, sep:
     
     return df
 
-# Example usage:
+
+def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> pd.DataFrame:
+    """
+    Load the contact center CSV file.
+    
+    Adjust parameters if you need to skip any descriptive rows.
+    
+    Parameters:
+        file_path (str): Path to the contact CSV.
+        sep (str): Delimiter used in the CSV.
+        encoding (str): File encoding.
+    
+    Returns:
+        pd.DataFrame: The contact center DataFrame.
+    """
+    df = pd.read_csv(file_path, sep=sep, encoding=encoding)
+    return df
+
+
+def load_renta_df(file_path: str, sep: str = ';', encoding: str = 'latin1', skiprows: int = 0, skipfooter: int = 0) -> pd.DataFrame:
+    """
+    Load the renta CSV file.
+    
+    The renta data typically has a simple header but may require skipping extra descriptive rows or footer rows.
+    
+    Parameters:
+        file_path (str): Path to the renta CSV.
+        sep (str): Delimiter used in the CSV.
+        encoding (str): File encoding.
+        skiprows (int): Number of rows to skip at the beginning.
+        skipfooter (int): Number of rows to skip at the end.
+    
+    Returns:
+        pd.DataFrame: The renta DataFrame.
+    """
+    df = pd.read_csv(file_path, sep=sep, encoding=encoding, engine='python', skiprows=skiprows, skipfooter=skipfooter)
+
+    return df
+
+
 if __name__ == "__main__":
     delitos_df = load_delitos_df("data/delitos_por_municipio.csv")
-    # contact_df 
-    # renta_df
+    
+    contact_df = load_contact_df("data/contac_center_data.csv")
+    renta_df = load_renta_df("data/renta_por_hogar.csv", skiprows=0, skipfooter=0)  # adjust skiprows/skipfooter as needed
+
 
 # 1b. LOAD DATA
 # -----------------------------------------------------------------------------
