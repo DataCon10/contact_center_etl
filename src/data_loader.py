@@ -110,7 +110,7 @@ def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> 
     """
     df = pd.read_csv(file_path, sep=sep, encoding=encoding)
     # Drop unnecessary NaN columns - assumption is that all NaN columns do not provide value 
-    df = df.dropna(axis=1, how='all')
+    df.dropna(axis=1, how='all', inplace=True)
 
     # Clean the 'sessionID' column 
     df['sessionID'] = (
@@ -123,7 +123,7 @@ def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> 
     return df
 
 
-def load_renta_df(file_path: str, sep: str = ';', encoding: str = 'latin1', skiprows: int = 0, skipfooter: int = 0) -> pd.DataFrame:
+def load_renta_df(file_path: str, sep: str = ';', encoding: str = 'utf-8-sig', skiprows: int = 0, skipfooter: int = 0) -> pd.DataFrame:
     """
     Load the renta CSV file.
     
@@ -140,5 +140,26 @@ def load_renta_df(file_path: str, sep: str = ';', encoding: str = 'latin1', skip
         pd.DataFrame: The renta DataFrame.
     """
     df = pd.read_csv(file_path, sep=sep, encoding=encoding, engine='python', skiprows=skiprows, skipfooter=skipfooter)
+    # ASSUMPTION - As we only have crime data for 2019/20 for simplicity I will drop data preceding 2019 
+    # However, the downside of this is that it doesn't enable us to carry out analysis on the impact of changes in income pre-2019 on crime rates after 2019
+    
+    df = df[df['Periodo'].isin([2019, 2020])]
+
+    df[['CP', 'Municipios']] = df['Municipios'].str.extract(r"^(\d{5})\s+(.*)")
+    # Extract the digits at the very end of the string after the word "distrito"
+    df['Distritos'] = df['Distritos'].str.extract(r"distrito\s+(\d+)$")
+    df['Secciones'] = df['Secciones'].str.extract(r"sección\s+(\d+)$")
+
+    # ASSUMPTION - only want to analyse the data at Municipio Level, hence group by this and disregard the other levels
+    # Impute missing NULL values to mitigate skewing the data
+    # First, ensure that 'Total' is numeric (converting non-numeric values, like '.', to NaN)
+    df['Total'] = pd.to_numeric(df['Total'], errors='coerce')
+
+    # Define the grouping columns. Make sure the names here match exactly those in your DataFrame.
+    group_cols = ['Municipios', 'Secciones', 'Indicadores de renta media y mediana', 'Periodo']
+
+    # For each group, fill missing values in 'Total' with the group's mean
+    df['Total_imputed'] = df.groupby(group_cols)['Total'].transform(lambda x: x.fillna(x.mean()))
+
 
     return df
