@@ -1,10 +1,20 @@
-# 1.a LOAD DATA
-# -----------------------------------------------------------------------------
-# Delitos 
-# Assummption - Headers are not revelant for dataset
-
 import pandas as pd
 import numpy as np
+
+import logging
+
+# Set up a logger for this module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Optionally add a StreamHandler if not configured globally
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
 
 def load_delitos_df(file_path: str, skiprows: int = 5, skipfooter: int = 7, sep: str = ';', encoding: str = 'latin1') -> pd.DataFrame:
     """
@@ -20,6 +30,7 @@ def load_delitos_df(file_path: str, skiprows: int = 5, skipfooter: int = 7, sep:
     Returns:
         pd.DataFrame: Cleaned DataFrame with flattened and descriptive column names.
     """
+    logger.info(f"Loading delitos data from {file_path}")
     # Load the CSV with two header rows (after skipping initial descriptive rows)
     df = pd.read_csv(
         file_path,
@@ -31,19 +42,26 @@ def load_delitos_df(file_path: str, skiprows: int = 5, skipfooter: int = 7, sep:
         skipfooter=skipfooter
     )
 
+    logger.info("Loaded delitos data with shape %s", df.shape)
+
     # Convert MultiIndex columns to a DataFrame for easier manipulation
     cols_df = df.columns.to_frame(index=False)
+    logger.debug("Initial header DataFrame:\n%s", cols_df)
     # Replace any top-level header starting with "Unnamed" with NaN and forward-fill them
     cols_df.iloc[:, 0] = cols_df.iloc[:, 0].replace(r"^Unnamed.*", np.nan, regex=True).ffill()
+    logger.debug("Header DataFrame after forward fill:\n%s", cols_df)
+
     
     # Rebuild the MultiIndex from the cleaned DataFrame
     df.columns = pd.MultiIndex.from_frame(cols_df)
     
     # Flatten the MultiIndex into a single string per column
     df.columns = [f"{str(upper).strip()}_{str(lower).strip()}" for upper, lower in df.columns]
+    logger.info("Flattened columns: %s", df.columns.tolist())
     
     # Rename the first column to "Municipio"
     df.rename(columns={df.columns[0]: "Municipio"}, inplace=True)
+    
     # Clean the Municipio values by removing the prefix "- Municipio de"
     df["Municipio"] = df["Municipio"].str.replace(r"^- Municipio de\s*", "", regex=True)
     
@@ -65,9 +83,13 @@ def load_delitos_df(file_path: str, skiprows: int = 5, skipfooter: int = 7, sep:
             new_cols[col] = col
     df.rename(columns=new_cols, inplace=True)
 
+    logger.info("Renamed columns: %s", df.columns.tolist())
+
     # Drop unwanted column if it exists
     if "TOTAL_INFRACCIONES_PENALES_31_level_1" in df.columns:
         df.drop(columns=["TOTAL_INFRACCIONES_PENALES_31_level_1"], inplace=True)
+    
+    logger.info("Final delitos DataFrame shape: %s", df.shape)
     
     return df
 
