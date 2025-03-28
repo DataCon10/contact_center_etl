@@ -90,7 +90,7 @@ def load_delitos_df(file_path: str, skiprows: int = 5, skipfooter: int = 7, sep:
         df.drop(columns=["TOTAL_INFRACCIONES_PENALES_31_level_1"], inplace=True)
     
     logger.info("Final delitos DataFrame shape: %s", df.shape)
-    
+
     return df
 
 
@@ -109,6 +109,17 @@ def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> 
         pd.DataFrame: The contact center DataFrame.
     """
     df = pd.read_csv(file_path, sep=sep, encoding=encoding)
+    # Drop unnecessary NaN columns - assumption is that all NaN columns do not provide value 
+    df = df.dropna(axis=1, how='all')
+
+    # Clean the 'sessionID' column 
+    df['sessionID'] = (
+        df['sessionID']
+        .str.replace(r"^b['\"]", "", regex=True)  # Remove leading b' or b"
+        .str.replace(r"['\"]$", "", regex=True)    # Remove trailing ' or "
+        .str.replace(r"=+$", "", regex=True)         # Remove one or more trailing '=' characters
+    )
+
     return df
 
 
