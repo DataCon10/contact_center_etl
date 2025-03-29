@@ -146,8 +146,8 @@ def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> 
     # Step 4: Calculate proportion columns for each funnel_Q response
     funnel_columns = pivot_df.columns.drop('CP')
 
-    for col in funnel_columns:
-        merged_df[f'{col}_prop'] = merged_df[col] / merged_df['total_DNIs']
+    # for col in funnel_columns:
+    #     merged_df[f'{col}_prop'] = merged_df[col] / merged_df['total_DNIs']
 
     return merged_df
 
