@@ -120,8 +120,40 @@ def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> 
         .str.replace(r"=+$", "", regex=True)         # Remove one or more trailing '=' characters
     )
 
-    return df
+    # ASSUMPTION - Repeated session calls don't enrich dataset, hence drop
+    # Handle duplicate calls to get unique answers per DNI
+    final_contact_df = df.drop_duplicates(subset=['DNI', 'CP', 'funnel_Q'])
 
+    # Pivot reponses and group by CP to get totals per CP
+    # Step 1: Count unique DNIs per CP (for proportions)
+    dni_totals = final_contact_df.groupby('CP')['DNI'].nunique().reset_index(name='total_DNIs')
+
+    # Step 2: Remove duplicate responses (one response per DNI per funnel_Q per CP)
+    unique_responses = final_contact_df.drop_duplicates(subset=['CP', 'DNI', 'funnel_Q'])
+
+    # Step 3: Pivot funnel_Q responses to columns, counting unique DNIs per response
+    pivot_df = unique_responses.pivot_table(
+        index='CP', 
+        columns='funnel_Q', 
+        values='DNI', 
+        aggfunc='nunique',
+        fill_value=0
+    ).reset_index()
+
+    # Merge total DNIs with the pivoted response counts
+    merged_df = pd.merge(dni_totals, pivot_df, on='CP', how='left')
+
+    # Step 4: Calculate proportion columns for each funnel_Q response
+    funnel_columns = pivot_df.columns.drop('CP')
+
+    for col in funnel_columns:
+        merged_df[f'{col}_prop'] = merged_df[col] / merged_df['total_DNIs']
+
+    return merged_df
+
+
+# def validate_repeated_DNI_sessions(df: pd.DataFrame) -> pd.DataFrame:
+    # pass
 
 def load_renta_df(file_path: str, sep: str = ';', encoding: str = 'utf-8-sig', skiprows: int = 0, skipfooter: int = 0) -> pd.DataFrame:
     """
