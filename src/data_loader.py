@@ -143,8 +143,8 @@ def load_contact_df(file_path: str, sep: str = ';', encoding: str = 'utf-8') -> 
     # Merge total DNIs with the pivoted response counts
     merged_df = pd.merge(dni_totals, pivot_df, on='CP', how='left')
 
-    # Step 4: Calculate proportion columns for each funnel_Q response
-    funnel_columns = pivot_df.columns.drop('CP')
+    # # Step 4: Calculate proportion columns for each funnel_Q response
+    # funnel_columns = pivot_df.columns.drop('CP')
 
     # for col in funnel_columns:
     #     merged_df[f'{col}_prop'] = merged_df[col] / merged_df['total_DNIs']
