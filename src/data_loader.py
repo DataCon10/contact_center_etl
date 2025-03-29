@@ -152,14 +152,18 @@ def load_renta_df(file_path: str, sep: str = ';', encoding: str = 'utf-8-sig', s
 
     # # ASSUMPTION - only want to analyse the data at Municipio Level, hence group by this and disregard the other levels
     # # Impute missing NULL values to mitigate skewing the data
+   
+
+    # Replace any value that consists solely of dots with NaN
+    df['Total'] = df['Total'].replace(r'^\.+$', np.nan, regex=True)
     # # First, ensure that 'Total' is numeric (converting non-numeric values, like '.', to NaN)
-    # df['Total'] = pd.to_numeric(df['Total'], errors='coerce')
+    df['Total'] = pd.to_numeric(df['Total'], errors='coerce')
 
-    # # Define the grouping columns. Make sure the names here match exactly those in your DataFrame.
-    # group_cols = ['Municipios', 'Secciones', 'Indicadores de renta media y mediana', 'Periodo']
+    # # For each group, fill missing values in 'Total' with the group's median
+    df['total_imputed'] = df.groupby(['Municipios', 'Periodo'])['Total'].transform(lambda x: x.fillna(x.median()))
 
-    # # For each group, fill missing values in 'Total' with the group's mean
-    # df['Total_imputed'] = df.groupby(group_cols)['Total'].transform(lambda x: x.fillna(x.mean()))
+    df['total_imputed'] = df['total_imputed'].fillna(df['total_imputed'].median())
 
-
-    return df
+    grouped_df = df.groupby(["Municipios", "CP", "Periodo"], as_index=False)["total_imputed"].median()
+    
+    return grouped_df

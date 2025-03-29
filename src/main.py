@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from data_loader import load_delitos_df, load_contact_df, load_renta_df
+import pandas as pd
 
 # Load the environment variables from the .env file
 load_dotenv()
@@ -30,7 +31,7 @@ def main():
     delitos_df['Municipio'] = delitos_df['Municipio'].astype(str).str.strip()
 
     # Perform an inner join on "Municipio"
-final_df = pd.merge(merged_df, delitos_df, on="Municipio", how="inner")
+    final_df = pd.merge(merged_df, delitos_df, on="Municipio", how="inner")
 
 if __name__ == "__main__":
     main()
