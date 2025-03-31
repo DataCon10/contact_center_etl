@@ -65,6 +65,7 @@ class DataLoader:
         """
         file_path = file_path or self.delitos_file
         self.logger.info(f"Loading delitos data from {file_path}")
+        # ASSUMPTION - The first 5 rows and 7 footer rows are not neeeded 
         df = pd.read_csv(
             file_path,
             sep=self.sep,
@@ -112,7 +113,7 @@ class DataLoader:
         df.rename(columns=new_cols, inplace=True)
         self.logger.info(f"Renamed columns: {df.columns.tolist()}")
 
-        # Drop unwanted column if it exists
+        # Drop unwanted column 
         unwanted_col = "TOTAL_INFRACCIONES_PENALES_31_level_1"
         if unwanted_col in df.columns:
             df.drop(columns=[unwanted_col], inplace=True)

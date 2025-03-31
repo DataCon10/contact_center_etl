@@ -17,7 +17,8 @@ def merge_renta_delitos(renta_df: pd.DataFrame, delitos_df: pd.DataFrame) -> pd.
     """Merge renta and delitos datasets on Municipio."""
     renta_df['Municipio'] = renta_df['Municipios'].astype(str).str.strip()
     delitos_df['Municipio'] = delitos_df['Municipio'].astype(str).str.strip()
-    
+
+    # Assumption - Inner join assumes that we won't derive insights from municipalities that are not present in both datasets.
     merged_df = pd.merge(renta_df, delitos_df, on="Municipio", how="inner")
     logger.info(f"Merged renta and delitos datasets; shape={merged_df.shape}")
     
@@ -28,6 +29,7 @@ def merge_with_contact(merged_df: pd.DataFrame, contact_df: pd.DataFrame) -> pd.
     merged_df['CP'] = merged_df['CP'].astype(str).str.strip()
     contact_df['CP'] = contact_df['CP'].astype(str).str.strip()
 
+    # Assumption - Left join assumes that contact data is optional because not all municipalities may have contact data but we can still derive insights from renta and delitos data.
     final_df = pd.merge(merged_df, contact_df, on="CP", how="left")
     logger.info(f"Joined with contact data; final shape={final_df.shape}")
     
