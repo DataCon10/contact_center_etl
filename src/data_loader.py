@@ -199,7 +199,7 @@ class DataLoader:
             file_path,
             sep=self.sep,
             encoding=self.encoding_renta,
-            engine='python',  # Required when using skipfooter
+            engine='python',  
             skiprows=self.renta_skiprows,
             skipfooter=self.renta_skipfooter
         )
@@ -228,25 +228,3 @@ class DataLoader:
         grouped_df = df.groupby(["Municipios", "CP", "Periodo"], as_index=False)["total_imputed"].median()
         return grouped_df
 
-
-# # Example usage:
-# if __name__ == "__main__":
-#     # Create an instance of DataLoader
-#     loader = DataLoader()
-    
-#     # Load datasets using the class methods (file paths come from environment variables if not provided)
-#     delitos_df = loader.load_delitos_df()
-#     contact_df = loader.load_contact_df()
-#     renta_df   = loader.load_renta_df()
-
-#     # Preview the results
-#     logger.info("Delitos DataFrame Columns:")
-#     logger.info(delitos_df.columns.tolist())
-#     logger.info("Delitos DataFrame Preview:")
-#     logger.info(delitos_df.head(5))
-
-#     logger.info("Contact DataFrame Preview:")
-#     logger.info(contact_df.head(5))
-
-#     logger.info("Renta DataFrame Preview:")
-#     logger.info(renta_df.head(5))
